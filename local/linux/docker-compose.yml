@@ -1,0 +1,45 @@
+version: '2'
+
+services:
+### PHP-FPM Container #######################################
+  php-fpm:
+    extends:
+      file: ../../common/docker-compose.yml
+      service: php-fpm
+    volumes:
+      - ./config/php-fpm/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
+      - ../../common/html:/var/www/html
+    extra_hosts:
+      - "host.docker.internal:${DOCKER_HOST_IP}"
+
+### SSL ##################################
+  ssl:
+    extends:
+      file: ../../common/docker-compose.yml
+      service: ssl
+    volumes:
+      - ./volumes/ssl/certs:/certs
+
+### Nginx Server Container ##################################
+  nginx:
+    extends:
+      file: ../../common/docker-compose.yml
+      service: nginx
+    volumes:
+      - ./config/nginx/sites/:/etc/nginx/sites-available
+      - ./volumes/ssl/certs/:/etc/nginx/ssl
+      - ../../common/html:/var/www/html
+      - ./volumes/shared/log/nginx/:/var/log/nginx
+    depends_on:
+      - php-fpm
+      - ssl
+
+### Logrotate Container ####################################
+  logrotate:
+    extends:
+      file: ../../common/docker-compose.yml
+      service: logrotate
+    volumes:
+      - ./config/logrotate/logrotate.conf:/etc/logrotate.conf
+      - ./volumes/shared/log:/log
+
