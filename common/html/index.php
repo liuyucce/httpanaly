@@ -1,2 +1,4 @@
 <?php
-print_r($_SERVER);
+foreach($_SERVER as $key => $data) {
+    echo $key . "=>" . $data . "<br/>";
+}
